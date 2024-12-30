@@ -43,6 +43,61 @@ print(dfx['user_id'])
 result = dfx['user_id'].unique()
 
 
+-----New Products
+--https://platform.stratascratch.com/coding/10318-new-products?code_type=2
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+df_2020 = car_launches[car_launches['year'].astype(str) == '2020']
+df_2019 = car_launches[car_launches['year'].astype(str) == '2019']
+df = pd.merge(df_2020, df_2019, how='outer', on=[
+    'company_name'], suffixes=['_2020', '_2019']).fillna(0)
+df = df[df['product_name_2020'] != df['product_name_2019']]
+df = df.groupby(['company_name']).agg(
+    {'product_name_2020': 'nunique', 'product_name_2019': 'nunique'}).reset_index()
+df['net_new_products'] = df['product_name_2020'] - df['product_name_2019']
+result = df[['company_name', 'net_new_products']]
 
 
+-- My code: groupby, sort, shift
+# Import your libraries
+import pandas as pd
+
+# Start writing code
+car_launches.head()
+g = car_launches.groupby(by=['year', 'company_name'], as_index=False)
+df = g['product_name'].count()
+df.columns = ['year', 'company_name', 'count_products']
+df.sort_values(by=['company_name', 'year' ], inplace=True)
+df['lag'] = df['count_products'].shift()
+#print(df)
+result = df[df['year']==2020]
+result['net_new_products'] = (result['count_products'] - result['lag']).astype(int)
+
+result = result[['company_name', 'net_new_products']]
+#print(result.shape, df.shape, car_launches.shape)
+
+---Top Percentile Fraud
+import pandas as pd
+import numpy as np
+fraud_score["percentile"] = fraud_score.groupby('state')['fraud_score'].rank(pct=True)
+df= fraud_score[fraud_score['percentile']>.95]
+result = df[['policy_num','state','claim_cost','fraud_score']]
+
+-- my code
+# Import your libraries
+import pandas as pd
+
+# Start writing code
+fraud_score.head()
+
+g = fraud_score.groupby(by='state')
+fraud_score['rankpct'] = g['fraud_score'].rank(method='first', ascending=True, pct=True)
+fraud_score.sort_values(by=['state', 'rankpct'], ascending=[True, False], inplace=True)
+
+print(fraud_score.shape)
+fraud_score = fraud_score[fraud_score['rankpct']>=0.95]
+print(fraud_score.shape)
+print(fraud_score)
 
